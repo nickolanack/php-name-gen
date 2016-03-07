@@ -3,8 +3,14 @@
 class PasswordGenerator
 {
 
-    public static function Generate()
+    public static function Generate($options = array())
     {
+
+        $config = array_merge(array(
+            'symbols' => true,
+            'join' => '',
+            'mutations' => 2,
+        ), $options);
 
         $adjectives = json_decode(file_get_contents(__DIR__ . '/adjectives.json'));
 
@@ -46,38 +52,23 @@ class PasswordGenerator
         );
 
         shuffle($parts);
-        $pwd .= '' . implode('', $parts);
-       
+        $pwd .= $config['join'] . implode($config['join'], $parts);
 
         $mutationFunctions = array(
 
             function (&$str) {
                 return self::_replaceOneOccurance($str, 's', '5');
             },
-
             function (&$str) {
                 return self::_replaceOneOccurance($str, 'o', '0');
-            },
-
-            function (&$str) {
-                return self::_replaceOneOccurance($str, 'i', '!');
-            },
-            function (&$str) {
-                return self::_replaceOneOccurance($str, '8', '&');
             },
             function (&$str) {
                 return self::_replaceOneOccurance($str, 'e', '3');
             },
             function (&$str) {
-                return self::_replaceOneOccurance($str, '7', '?');
-            },
-            function (&$str) {
                 return self::_capitolizeOneLetter($str);
             },
-            function (&$str) {
-                $str .= '$';
-                return 1;
-            },
+
             function (&$str) {
                 $str .= '_';
                 return 1;
@@ -85,8 +76,27 @@ class PasswordGenerator
 
         );
 
-        $minMutations = 2;
-        $mutations    = 0;
+        if ($config['symbols']) {
+            $mutationFunctions = array_merge($mutationFunctions, array(
+                function (&$str) {
+                    return self::_replaceOneOccurance($str, '7', '?');
+                },
+                function (&$str) {
+                    return self::_replaceOneOccurance($str, 'i', '!');
+                },
+                function (&$str) {
+                    return self::_replaceOneOccurance($str, '8', '&');
+                },
+                function (&$str) {
+                    $str .= '$';
+                    return 1;
+                },
+            ));
+
+        }
+
+        $minMutations = $config['mutations'];
+        $mutations = 0;
 
         while ($mutations < $minMutations && count($mutationFunctions)) {
 
@@ -100,41 +110,40 @@ class PasswordGenerator
 
     }
 
-
     protected static function _replaceOneOccurance(&$str, $chr, $withChr)
-        {
+    {
 
-            $i   = 0;
-            $pos = array();
-            while (($i = strpos($str, $chr, $i)) !== false) {
-                $pos[] = $i;
-                $i++;
-            }
+        $i = 0;
+        $pos = array();
+        while (($i = strpos($str, $chr, $i)) !== false) {
+            $pos[] = $i;
+            $i++;
+        }
 
-            if (count($pos)) {
-                $p   = $pos[array_rand($pos)];
-                $str = substr($str, 0, $p) . $withChr . substr($str, $p + 1);
+        if (count($pos)) {
+            $p = $pos[array_rand($pos)];
+            $str = substr($str, 0, $p) . $withChr . substr($str, $p + 1);
+            return 1;
+        }
+        return 0;
+    }
+
+    protected static function _capitolizeOneLetter(&$str)
+    {
+
+        for ($i = 0; $i < 5; $i++) {
+
+            $p = rand(0, strlen($str) - 1);
+
+            if (ctype_alpha($str{$p})) {
+                $str = substr($str, 0, $p) . strtoupper($str{$p}) . substr($str, $p + 1);
                 return 1;
             }
-            return 0;
-        }
-
-        protected static function _capitolizeOneLetter(&$str)
-        {
-
-            for ($i = 0; $i < 5; $i++) {
-
-                $p = rand(0, strlen($str) - 1);
-
-                if (ctype_alpha($str{$p})) {
-                    $str = substr($str, 0, $p) . strtoupper($str{$p}) . substr($str, $p + 1);
-                    return 1;
-                }
-
-            }
-            return 0;
 
         }
+        return 0;
+
+    }
 
 }
 
