@@ -47,65 +47,32 @@ class PasswordGenerator
 
         shuffle($parts);
         $pwd .= '' . implode('', $parts);
-        function replaceOneOccurance(&$str, $chr, $withChr)
-        {
-
-            $i   = 0;
-            $pos = array();
-            while (($i = strpos($str, $chr, $i)) !== false) {
-                $pos[] = $i;
-                $i++;
-            }
-
-            if (count($pos)) {
-                $p   = $pos[array_rand($pos)];
-                $str = substr($str, 0, $p) . $withChr . substr($str, $p + 1);
-                return 1;
-            }
-            return 0;
-        }
-
-        function capitolizeOneLetter(&$str)
-        {
-
-            for ($i = 0; $i < 5; $i++) {
-
-                $p = rand(0, strlen($str) - 1);
-
-                if (ctype_alpha($str{$p})) {
-                    $str = substr($str, 0, $p) . strtoupper($str{$p}) . substr($str, $p + 1);
-                    return 1;
-                }
-
-            }
-            return 0;
-
-        }
+       
 
         $mutationFunctions = array(
 
             function (&$str) {
-                return replaceOneOccurance($str, 's', '5');
+                return self::_replaceOneOccurance($str, 's', '5');
             },
 
             function (&$str) {
-                return replaceOneOccurance($str, 'o', '0');
+                return self::_replaceOneOccurance($str, 'o', '0');
             },
 
             function (&$str) {
-                return replaceOneOccurance($str, 'i', '!');
+                return self::_replaceOneOccurance($str, 'i', '!');
             },
             function (&$str) {
-                return replaceOneOccurance($str, '8', '&');
+                return self::_replaceOneOccurance($str, '8', '&');
             },
             function (&$str) {
-                return replaceOneOccurance($str, 'e', '3');
+                return self::_replaceOneOccurance($str, 'e', '3');
             },
             function (&$str) {
-                return replaceOneOccurance($str, '7', '?');
+                return self::_replaceOneOccurance($str, '7', '?');
             },
             function (&$str) {
-                return capitolizeOneLetter($str);
+                return self::_capitolizeOneLetter($str);
             },
             function (&$str) {
                 $str .= '$';
@@ -132,6 +99,43 @@ class PasswordGenerator
         return $pwd;
 
     }
+
+
+    protected static function _replaceOneOccurance(&$str, $chr, $withChr)
+        {
+
+            $i   = 0;
+            $pos = array();
+            while (($i = strpos($str, $chr, $i)) !== false) {
+                $pos[] = $i;
+                $i++;
+            }
+
+            if (count($pos)) {
+                $p   = $pos[array_rand($pos)];
+                $str = substr($str, 0, $p) . $withChr . substr($str, $p + 1);
+                return 1;
+            }
+            return 0;
+        }
+
+        protected static function _capitolizeOneLetter(&$str)
+        {
+
+            for ($i = 0; $i < 5; $i++) {
+
+                $p = rand(0, strlen($str) - 1);
+
+                if (ctype_alpha($str{$p})) {
+                    $str = substr($str, 0, $p) . strtoupper($str{$p}) . substr($str, $p + 1);
+                    return 1;
+                }
+
+            }
+            return 0;
+
+        }
+
 }
 
 if (realpath($argv[0]) === __FILE__) {
